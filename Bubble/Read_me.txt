@@ -1,0 +1,17 @@
+Steps:
+
+Install XAMPP from https://www.apachefriends.org/download.html and run the control panel
+
+Copy the visualization technique folder and paste it in the C:\xampp\htdocs ; Default directory
+
+Start Apache Server from XAAMP control panel
+
+Open brower and navigate to http://localhost/ and run the html file
+
+
+Note:
+ 
+Save the 1999.csv along with the .html file to run the program
+
+
+Visualized image shows different attributes when hovered and clicked over it.

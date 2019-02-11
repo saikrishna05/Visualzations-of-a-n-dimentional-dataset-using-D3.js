@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bubble Graph</title>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.6.0/d3.min.js"></script>
+</head>
+<body>
+<h4>Country wise different Aid values</h4>
+
+<script>
+    var svgAreaWidth=700,svgAreaHeight=700;
+    //this selects body
+    var createbodySVG =d3.select("body");
+    //appends svg element to body element
+    var createSVG = createbodySVG.append("svg").attr("height",svgAreaHeight).attr("width",svgAreaWidth);
+    d3.csv('1999.csv', function(error, data) {
+        //displays error message if not read
+        if (error) {
+            console.error('Unable to read data from external file. Please check');
+            throw error;
+        }
+        //calls the bubble chart function
+        createbodySVG.data(data).call(createBubbleChart);
+        //this function is called in which bubble for each data point
+        // and other attributes are applied
+        function createBubbleChart(addBubbletoData) {
+            //store csv data in a variable processedData
+            var processedData = addBubbletoData.enter().data();
+            //appends data to the svg area
+            var svgSelection = addBubbletoData.selectAll('svg');
+            //this creates a good range for the bubbles in the graph
+            var colorRangeforBubbles = d3.scaleOrdinal(d3.schemeCategory10);
+            //given the bubble size a range--here its from min to max value of all the bubble values
+            var bubbleSizeRange = d3.scaleLinear().
+            domain( [d3.min(processedData, function(d) {
+                return +d["Water and Sanitation Aid"];
+            }),
+                d3.max(processedData, function(d) {
+                    return +d["Water and Sanitation Aid"];
+                })
+            ]   )
+                .range([8, 50]);
+            //this creates a forced layout for the bubbles
+            var bubbleChartForcelayout = d3.forceSimulation(processedData)
+                .force("charge", d3.forceManyBody().distanceMin([20]).strength([-200]))
+                .force("x", d3.forceX())
+                .force("y", d3.forceY())
+                //tick holds the bubbles in position
+                .on("tick", function tick(d) {
+                    //applies tick for each data
+                    addBubbleforData.attr("cx", function(d) {
+                        return d.x;
+                    })
+                        .attr("cy", function(d) {
+                            return d.y;
+                        });
+                });
+            //below code takes data and appends a circle one by one
+            var addBubbleforData = svgSelection.selectAll("circle")
+                .data(processedData)
+                .enter()
+                .append("circle")
+                //range for bubble size
+                .attr('r', function(d) {
+                    return bubbleSizeRange(d["Water and Sanitation Aid"]);
+                })
+                //color fill for each bubble
+                .style("fill", function(d) {
+                    return colorRangeforBubbles(d["Water and Sanitation Aid"]);
+                })
+                //determines location of each bubble
+                .attr('transform', 'translate(' + [svgAreaWidth / 2, svgAreaHeight / 2] + ')')
+                //on placing mouse on the bubble it renders some user friendly text
+                .on("mouseover", function(d) {
+                    onHoverInfoBox.html(d.worksite+ "<br>" +"Water and Sanitation Aid:" +d["Water and Sanitation Aid"]);
+                    return onHoverInfoBox.style("visibility", "visible");
+                })
+                .on("click", function(d) {
+                    onHoverInfoBox.html("<b>"+d.worksite+"<br/>"+"Water and Sanitation Aid:" +d["Water and Sanitation Aid"]
+                        +"<br/>"+"<br/>"
+                        +"Education Aid:"+d["employer_name1"]+"<br>"
+                        +"Cross Sectors Aid:"+d["count1"]+"<br>"
+                        +"<br>"
+                        +"Production Section Aid:" +d["employer_name2"]+"<br>"
+                        +"Civil Sector Aid:"+d["count2"]+"<br>"+
+                        +"Health Aid:"+d["employer_name3"]+"<br>"+"Population Policies Aid:"+d["count3"]+"<br>"
+                        +"Economic Infrastructure Aid:"+ d["employer_name4"]);
+                    //returns above retrieved info
+                    return onHoverInfoBox.style("background-color", "#8bcf99")
+                        .style("border-radius", "8px")
+                        .style("opacity",0.9)
+                        .style("text-align", "left")
+                        .style("height","200px")
+                        .style("width", "350px")
+                        .style("visibility", "visible");
+                })
+                //denotes mouse move
+                .on("mousemove", function() {
+                    //d3.event.page gives the absolute positioning of mouse over a bubble
+                    return onHoverInfoBox.style("top", (d3.event.pageY) + "px").style("left", (d3.event.pageX) + "px");
+                })
+                //removes the hover info on mouse out
+                .on("mouseout", function() {
+                    //on mouse out hide the tooltip or on hover info box
+                    return onHoverInfoBox.style("background-color", "#b3b376")
+                    //adds all the below mentioned style attributes
+                        .style("text-align", "center")
+                        .style("opacity",5)
+                        .style("height", "30px")
+                        .style("width", "130px")
+                        .style("visibility", "hidden");
+                });
+            //creates a divison for hover box
+            var onHoverInfoBox = addBubbletoData
+            //italics is applied to hover box
+                .append("i")
+                //adds all the below mentioned style attributes
+                .style("position", "absolute")
+                .style("visibility", "hidden")
+                .style("color", "black")
+                .style("padding", "5px")
+                .style("background-color", "#b3b376")
+                .style("border-radius", "16px")
+                .style("font-family", "monospace")
+                .style("text-align", "center")
+                .style("width", "130px")
+                .style("height", "60px");
+        }
+    });
+    createbodySVG.exit().remove();
+</script>
+</body>
+</html>
